@@ -5,6 +5,7 @@ load(
     "ddk_headers",
     "ddk_module",
     "ddk_submodule",
+    "kernel_build",
 )
 
 ddk_headers(
@@ -96,6 +97,49 @@ ddk_module(
     defconfig = "trusty_defconfig.fragment",
     kconfig = "drivers/trusty/Kconfig",
     kernel_build = "//common:kernel_aarch64",
+    deps = [
+        "trusty-core",
+        "trusty-ipc",
+        "trusty-log",
+        "trusty-test",
+        "trusty-virtio",
+    ],
+)
+
+_qemu_common_modules = [
+    # keep sorted
+    "drivers/net/net_failover.ko",
+    "drivers/virtio/virtio_pci_modern_dev.ko",
+    "net/core/failover.ko",
+    "virtio_blk.ko",
+    "virtio_console.ko",
+    "virtio_mmio.ko",
+    "virtio_net.ko",
+    "virtio_pci.ko",
+]
+
+kernel_build(
+    name = "qemu_aarch64",
+    srcs = glob([
+        "build.config.*",
+        "*_defconfig.fragment",
+    ]) + [
+        "//common:kernel_aarch64_sources",
+    ],
+    outs = [],
+    base_kernel = "//common:kernel_aarch64_download_or_build",
+    build_config = "build.config.qemu_trusty.aarch64",
+    make_goals = [
+        "modules",
+    ],
+    module_outs = _qemu_common_modules,
+)
+
+ddk_module(
+    name = "qemu_trusty_aarch64",
+    defconfig = "trusty_defconfig.fragment",
+    kconfig = "drivers/trusty/Kconfig",
+    kernel_build = ":qemu_aarch64",
     deps = [
         "trusty-core",
         "trusty-ipc",
