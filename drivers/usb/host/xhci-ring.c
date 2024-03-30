@@ -2229,6 +2229,7 @@ static int finish_td(struct xhci_hcd *xhci, struct xhci_virt_ep *ep,
 		     u32 trb_comp_code)
 {
 	struct xhci_ep_ctx *ep_ctx;
+	int trbs_freed;
 
 	ep_ctx = xhci_get_ep_ctx(xhci, ep->vdev->out_ctx, ep->ep_index);
 
@@ -2292,13 +2293,11 @@ static int finish_td(struct xhci_hcd *xhci, struct xhci_virt_ep *ep,
 			xhci_clear_hub_tt_buffer(xhci, td, ep);
 
 		xhci_handle_halted_endpoint(xhci, ep, ep_ring->stream_id, td,
-					     EP_HARD_RESET);
-	} else {
-		/* Update ring dequeue pointer */
-		ep_ring->dequeue = td->last_trb;
-		ep_ring->deq_seg = td->last_trb_seg;
-		ep_ring->num_trbs_free += td->num_trbs - 1;
-		inc_deq(xhci, ep_ring);
+					    EP_HARD_RESET);
+
+		return 0; /* xhci_handle_halted_endpoint marked td cancelled */
+	default:
+		break;
 	}
 
 	/* Update ring dequeue pointer */
