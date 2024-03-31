@@ -1,0 +1,150 @@
+# SPDX-License-Identifier: GPL-2.0
+
+load(
+    "//build/kernel/kleaf:kernel.bzl",
+    "ddk_headers",
+    "ddk_module",
+    "ddk_submodule",
+    "kernel_build",
+)
+
+ddk_headers(
+    name = "headers",
+    hdrs = glob([
+        "drivers/trusty/*.h",
+        "include/**/*.h",
+    ]),
+    includes = [
+        "drivers/trusty",
+        "include",
+    ],
+)
+
+ddk_headers(
+    name = "uapi",
+    hdrs = glob(["uapi/**/*.h"]) + [
+        "//common:all_headers",
+    ],
+    includes = ["uapi"],
+)
+
+ddk_submodule(
+    name = "trusty-core",
+    srcs = [
+        "drivers/trusty/trusty.c",
+        "drivers/trusty/trusty-irq.c",
+        "drivers/trusty/trusty-mem.c",
+        "drivers/trusty/trusty-sched-share.c",
+        "drivers/trusty/trusty-smc-arm64.S",
+    ],
+    out = "trusty-core.ko",
+    deps = [
+        ":headers",
+        ":uapi",
+    ],
+)
+
+ddk_submodule(
+    name = "trusty-ipc",
+    srcs = [
+        "drivers/trusty/trusty-ipc.c",
+    ],
+    out = "trusty-ipc.ko",
+    deps = [
+        ":headers",
+        ":uapi",
+    ],
+)
+
+ddk_submodule(
+    name = "trusty-log",
+    srcs = [
+        "drivers/trusty/trusty-log.c",
+    ],
+    out = "trusty-log.ko",
+    deps = [
+        ":headers",
+        ":uapi",
+    ],
+)
+
+ddk_submodule(
+    name = "trusty-test",
+    srcs = [
+        "drivers/trusty/trusty-test.c",
+    ],
+    out = "trusty-test.ko",
+    deps = [
+        ":headers",
+        ":uapi",
+    ],
+)
+
+ddk_submodule(
+    name = "trusty-virtio",
+    srcs = [
+        "drivers/trusty/trusty-virtio.c",
+    ],
+    out = "trusty-virtio.ko",
+    deps = [
+        ":headers",
+        ":uapi",
+    ],
+)
+
+ddk_module(
+    name = "gki_trusty_aarch64",
+    defconfig = "trusty_defconfig.fragment",
+    kconfig = "drivers/trusty/Kconfig",
+    kernel_build = "//common:kernel_aarch64",
+    deps = [
+        "trusty-core",
+        "trusty-ipc",
+        "trusty-log",
+        "trusty-test",
+        "trusty-virtio",
+    ],
+)
+
+_qemu_common_modules = [
+    # keep sorted
+    "drivers/net/net_failover.ko",
+    "drivers/virtio/virtio_pci_modern_dev.ko",
+    "net/core/failover.ko",
+    "virtio_blk.ko",
+    "virtio_console.ko",
+    "virtio_mmio.ko",
+    "virtio_net.ko",
+    "virtio_pci.ko",
+]
+
+kernel_build(
+    name = "qemu_aarch64",
+    srcs = glob([
+        "build.config.*",
+        "*_defconfig.fragment",
+    ]) + [
+        "//common:kernel_aarch64_sources",
+    ],
+    outs = [],
+    base_kernel = "//common:kernel_aarch64_download_or_build",
+    build_config = "build.config.qemu_trusty.aarch64",
+    make_goals = [
+        "modules",
+    ],
+    module_outs = _qemu_common_modules,
+)
+
+ddk_module(
+    name = "qemu_trusty_aarch64",
+    defconfig = "trusty_defconfig.fragment",
+    kconfig = "drivers/trusty/Kconfig",
+    kernel_build = ":qemu_aarch64",
+    deps = [
+        "trusty-core",
+        "trusty-ipc",
+        "trusty-log",
+        "trusty-test",
+        "trusty-virtio",
+    ],
+)
