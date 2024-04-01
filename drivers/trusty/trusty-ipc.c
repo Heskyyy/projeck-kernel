@@ -2740,7 +2740,7 @@ static int __init tipc_init(void)
 
 	tipc_major = MAJOR(dev);
 	tipc_class = class_create(
-			TRUSTY_IPC_CLASS_CREATE_ARG_THIS_MODULE,
+			TRUSTY_IPC_CLASS_CREATE_ARG_THIS_MODULE
 			KBUILD_MODNAME);
 	if (IS_ERR(tipc_class)) {
 		ret = PTR_ERR(tipc_class);
