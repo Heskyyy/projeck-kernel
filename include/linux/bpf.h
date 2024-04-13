@@ -189,6 +189,7 @@ struct bpf_map {
 #else
 	atomic64_t writecnt;
 #endif
+	bool free_after_mult_rcu_gp;
 };
 
 static inline bool map_value_has_spin_lock(const struct bpf_map *map)
