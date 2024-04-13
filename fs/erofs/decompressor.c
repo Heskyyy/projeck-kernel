@@ -194,7 +194,7 @@ docopy:
 	return src;
 }
 
-static int z_erofs_lz4_decompress(struct z_erofs_decompress_req *rq, u8 *dst)
+static int z_erofs_lz4_decompress(struct z_erofs_decompress_req *rq, u8 *out)
 {
 	unsigned int inputmargin;
 	u8 *out, *headpage, *src;
@@ -356,7 +356,8 @@ static int z_erofs_decompress_generic(struct z_erofs_decompress_req *rq,
 	dst_maptype = 2;
 
 dstmap_out:
-	ret = alg->decompress(rq, dst);
+	ret = alg->decompress(rq, dst + rq->pageofs_out);
+
 	if (!dst_maptype)
 		kunmap_atomic(dst);
 	else if (dst_maptype == 2)
