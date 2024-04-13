@@ -2151,8 +2151,6 @@ int hrtimers_dead_cpu(unsigned int scpu)
 	 */
 	hrtimer_update_softirq_timer(new_base, false);
 
-	raw_spin_unlock(&new_base->lock);
-	old_base->online = 0;
 	raw_spin_unlock(&old_base->lock);
 	raw_spin_unlock(&new_base->lock);
 
