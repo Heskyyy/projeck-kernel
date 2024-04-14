@@ -2,6 +2,8 @@
 #
 # Makefile for the PCI bus specific drivers.
 
+EXTRA_CFLAGS += -Wno-implicit-function-declaration
+
 obj-$(CONFIG_PCI)		+= access.o bus.o probe.o host-bridge.o \
 				   remove.o pci.o pci-driver.o search.o \
 				   pci-sysfs.o rom.o setup-res.o irq.o vpd.o \
