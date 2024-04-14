@@ -71,7 +71,6 @@ static void pci_dev_d3_sleep(struct pci_dev *dev)
 		delay = pci_pm_d3hot_delay;
 
 	if (delay) {
-		trace_android_rvh_pci_d3_sleep(dev, delay, &err);
 		if (err == -EOPNOTSUPP)
 			msleep(delay);
 	}
