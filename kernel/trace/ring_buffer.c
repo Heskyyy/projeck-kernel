@@ -1476,7 +1476,7 @@ static void rb_tail_page_update(struct ring_buffer_per_cpu *cpu_buffer,
 		local_set(&next_page->page->commit, 0);
 
 		/* Either we update tail_page or an interrupt does */
-		if (try_cmpxchg(&cpu_buffer->tail_page, &tail_page, next_page))
+		(void)cmpxchg(&cpu_buffer->tail_page, &tail_page, next_page);
 			local_inc(&cpu_buffer->pages_touched);
 	}
 }
