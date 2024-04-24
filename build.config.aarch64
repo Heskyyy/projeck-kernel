@@ -5,6 +5,18 @@ CROSS_COMPILE=aarch64-linux-gnu-
 CROSS_COMPILE_COMPAT=arm-linux-gnueabi-
 LINUX_GCC_CROSS_COMPILE_PREBUILTS_BIN=prebuilts/gas/linux-x86
 
+export CC=clang
+export AR=llvm-ar
+export NM=llvm-nm
+export STRIP=llvm-strip 
+export OBJCOPY=llvm-objcopy
+export OBJDUMP=llvm-objdump
+export READELF=llvm-readelf 
+export HOSTCC=clang
+export HOSTCXX=clang++
+export HOSTAR=llvm-ar
+export HOSTLD=ld.lld
+
 MAKE_GOALS="
 Image
 modules

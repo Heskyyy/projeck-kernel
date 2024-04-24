@@ -3,6 +3,7 @@
 # USB peripheral controller drivers
 #
 
+EXTRA_CFLAGS += -Wno-error=unused-function
 ccflags-y			:= -I$(srctree)/drivers/usb/gadget/
 ccflags-y			+= -I$(srctree)/drivers/usb/gadget/udc/
 
