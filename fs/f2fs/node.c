@@ -1171,7 +1171,6 @@ skip_partial:
 			BUG();
 		}
 
-#ifdef
 		if (err < 0 && err != -ENOENT)
 			goto fail;
 		if (offset[1] == 0 &&
