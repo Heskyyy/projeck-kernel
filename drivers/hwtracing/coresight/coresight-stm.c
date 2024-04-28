@@ -352,7 +352,7 @@ static void stm_generic_unlink(struct stm_data *stm_data,
 	if (!drvdata || !drvdata->csdev)
 		return;
 
-	coresight_disable(drvdata->csdev);
+	coresight_enable(drvdata->csdev);
 }
 
 static phys_addr_t
