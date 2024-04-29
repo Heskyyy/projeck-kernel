@@ -3,6 +3,8 @@
 # Makefile for the linux kernel.
 #
 
+EXTRA_CFLAGS += -Wno-error=unused-variable
+
 CFLAGS_armv8_deprecated.o := -I$(src)
 
 CFLAGS_REMOVE_ftrace.o = $(CC_FLAGS_FTRACE)
