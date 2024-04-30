@@ -3375,7 +3375,7 @@ static inline bool queue_kfree_rcu_work(struct kfree_rcu_cpu *krcp)
 			// Channel 3 corresponds to emergency path.
 			if (!krwp->head_free) {
 				krwp->head_free = krcp->head;
-				krcp->head = NULL;
+				WRITE_ONCE(krcp->head, NULL);
 			}
 
 			WRITE_ONCE(krcp->count, 0);
