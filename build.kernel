@@ -57,7 +57,7 @@ if [ -n "${GKI_DEFCONFIG_FRAGMENT}" ]; then
 source ${GKI_DEFCONFIG_FRAGMENT}
 fi
 
-export KBUILD_BUILD_USER="root"
-export KBUILD_BUILD_HOST="GhostSP"
-export KBUILD_COMPILER_STRING="by-GhostSP"
+export KBUILD_BUILD_USER=root
+export KBUILD_BUILD_HOST=GhostSP
+export KBUILD_COMPILER_STRING=by-GhostSP
 
