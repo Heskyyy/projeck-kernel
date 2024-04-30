@@ -5217,6 +5217,7 @@ __alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order, int preferred_nid,
 	 * &cpuset_current_mems_allowed to optimize the fast-path attempt.
 	 */
 	ac.nodemask = nodemask;
+	trace_android_vh_customize_alloc_gfp(&alloc_gfp, order);
 
 	page = __alloc_pages_slowpath(alloc_mask, order, &ac);
 
