@@ -32,6 +32,9 @@
 #include <asm/dma.h>
 #include <linux/aer.h>
 #include <linux/bitfield.h>
+#ifndef  __GENKSYMS__
+#include <trace/hooks/pci.h>
+#endif
 #include "pci.h"
 
 DEFINE_MUTEX(pci_slot_mutex);
