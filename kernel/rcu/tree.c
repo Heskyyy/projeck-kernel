@@ -3010,39 +3010,6 @@ __call_rcu(struct rcu_head *head, rcu_callback_t func)
 	}
 }
 
-#ifdef CONFIG_RCU_LAZY
-static bool enable_rcu_lazy __read_mostly = !IS_ENABLED(CONFIG_RCU_LAZY_DEFAULT_OFF);
-module_param(enable_rcu_lazy, bool, 0444);
-
-/**
- * call_rcu_hurry() - Queue RCU callback for invocation after grace period, and
- * flush all lazy callbacks (including the new one) to the main ->cblist while
- * doing so.
- *
- * @head: structure to be used for queueing the RCU updates.
- * @func: actual callback function to be invoked after the grace period
- *
- * The callback function will be invoked some time after a full grace
- * period elapses, in other words after all pre-existing RCU read-side
- * critical sections have completed.
- *
- * Use this API instead of call_rcu() if you don't want the callback to be
- * invoked after very long periods of time, which can happen on systems without
- * memory pressure and on systems which are lightly loaded or mostly idle.
- * This function will cause callbacks to be invoked sooner than later at the
- * expense of extra power. Other than that, this function is identical to, and
- * reuses call_rcu()'s logic. Refer to call_rcu() for more details about memory
- * ordering and other functionality.
- */
-void call_rcu_hurry(struct rcu_head *head, rcu_callback_t func)
-{
-	return __call_rcu_common(head, func, false);
-}
-EXPORT_SYMBOL_GPL(call_rcu_hurry);
-#else
-#define enable_rcu_lazy		false
-#endif
-
 /**
  * call_rcu() - Queue an RCU callback for invocation after a grace period.
  * @head: structure to be used for queueing the RCU updates.
@@ -3080,7 +3047,7 @@ EXPORT_SYMBOL_GPL(call_rcu_hurry);
  */
 void call_rcu(struct rcu_head *head, rcu_callback_t func)
 {
-	__call_rcu_common(head, func, enable_rcu_lazy);
+	__call_rcu(head, func);
 }
 EXPORT_SYMBOL_GPL(call_rcu);
 
