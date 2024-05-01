@@ -3591,7 +3591,6 @@ kfree_rcu_shrink_count(struct shrinker *shrink, struct shrink_control *sc)
 
 		count += READ_ONCE(krcp->count);
 		count += READ_ONCE(krcp->nr_bkv_objs);
-		atomic_set(&krcp->backoff_page_cache_fill, 1);
 	}
 
 	return count == 0 ? SHRINK_EMPTY : count;
