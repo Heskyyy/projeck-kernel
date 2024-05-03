@@ -1322,9 +1322,6 @@ static void __init clk_unprepare_unused_subtree(struct clk_core *core)
 	if (core->prepare_count)
 		return;
 
-	if (core->flags & CLK_IGNORE_UNUSED)
-		return;
-
 	if (clk_core_is_prepared(core)) {
 		trace_clk_unprepare(core);
 		if (core->ops->unprepare_unused)
