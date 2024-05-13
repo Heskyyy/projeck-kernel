@@ -60,6 +60,21 @@ static struct softirq_action softirq_vec[NR_SOFTIRQS] __cacheline_aligned_in_smp
 DEFINE_PER_CPU(struct task_struct *, ksoftirqd);
 EXPORT_PER_CPU_SYMBOL_GPL(ksoftirqd);
 
+#ifdef CONFIG_RT_SOFTIRQ_AWARE_SCHED
+/*
+ * active_softirqs -- per cpu, a mask of softirqs that are being handled,
+ * with the expectation that approximate answers are acceptable and therefore
+ * no synchronization.
+ */
+DEFINE_PER_CPU(u32, active_softirqs);
+static inline void set_active_softirqs(u32 pending)
+{
+	__this_cpu_write(active_softirqs, pending);
+}
+#else /* CONFIG_RT_SOFTIRQ_AWARE_SCHED */
+static inline void set_active_softirqs(u32 pending) {};
+#endif /* CONFIG_RT_SOFTIRQ_AWARE_SCHED */
+
 /*
  * active_softirqs -- per cpu, a mask of softirqs that are being handled,
  * with the expectation that approximate answers are acceptable and therefore
@@ -86,6 +101,25 @@ static void wakeup_softirqd(void)
 	if (tsk && tsk->state != TASK_RUNNING)
 		wake_up_process(tsk);
 }
+
+#ifndef CONFIG_RT_SOFTIRQ_AWARE_SCHED
+/*
+ * If ksoftirqd is scheduled, we do not want to process pending softirqs
+ * right now. Let ksoftirqd handle this at its own rate, to get fairness,
+ * unless we're doing some of the synchronous softirqs.
+ */
+#define SOFTIRQ_NOW_MASK ((1 << HI_SOFTIRQ) | (1 << TASKLET_SOFTIRQ))
+static bool ksoftirqd_running(unsigned long pending)
+{
+	struct task_struct *tsk = __this_cpu_read(ksoftirqd);
+
+	if (pending & SOFTIRQ_NOW_MASK)
+		return false;
+	return tsk && task_is_running(tsk) && !__kthread_should_park(tsk);
+}
+#else
+#define ksoftirqd_running(pending) (false)
+#endif /* CONFIG_RT_SOFTIRQ_AWARE_SCHED */
 
 /*
  * preempt_count and SOFTIRQ_OFFSET usage:
@@ -285,6 +319,7 @@ restart:
 	/* Reset the pending bitmask before enabling irqs */
 	set_softirq_pending(deferred);
 	__this_cpu_write(active_softirqs, pending);
+	set_active_softirqs(pending);
 
 	local_irq_enable();
 
@@ -314,6 +349,7 @@ restart:
 		pending >>= softirq_bit;
 	}
 
+	set_active_softirqs(0);
 	__this_cpu_write(active_softirqs, 0);
 	if (__this_cpu_read(ksoftirqd) == current)
 		rcu_softirq_qs();

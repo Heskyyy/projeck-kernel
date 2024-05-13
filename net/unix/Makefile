@@ -3,6 +3,7 @@
 # Makefile for the Linux unix domain socket layer.
 #
 
+EXTRA_CFLAGS += -Wno-error=incompatible-pointer-types
 obj-$(CONFIG_UNIX)	+= unix.o
 
 unix-y			:= af_unix.o garbage.o

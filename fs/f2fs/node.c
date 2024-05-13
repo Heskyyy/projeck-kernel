@@ -1170,6 +1170,7 @@ skip_partial:
 		default:
 			BUG();
 		}
+
 		if (err < 0 && err != -ENOENT)
 			goto fail;
 		if (offset[1] == 0 &&

@@ -1680,7 +1680,9 @@ cfg80211_update_known_bss(struct cfg80211_registered_device *rdev,
 				   new->pub.proberesp_ies);
 		if (old)
 			kfree_rcu((struct cfg80211_bss_ies *)old, rcu_head);
-	} else if (rcu_access_pointer(new->pub.beacon_ies)) {
+	}
+
+	if (rcu_access_pointer(new->pub.beacon_ies)) {
 		const struct cfg80211_bss_ies *old;
 
 		if (known->pub.hidden_beacon_bss &&
@@ -1745,18 +1747,18 @@ cfg80211_bss_update(struct cfg80211_registered_device *rdev,
 		    bool signal_valid, unsigned long ts)
 {
 	struct cfg80211_internal_bss *found = NULL;
+	struct cfg80211_bss_ies *ies;
 
 	if (WARN_ON(!tmp->pub.channel))
-		return NULL;
+		goto free_ies;
 
 	tmp->ts = ts;
 
 	spin_lock_bh(&rdev->bss_lock);
 
-	if (WARN_ON(!rcu_access_pointer(tmp->pub.ies))) {
+	if (WARN_ON(!rcu_access_pointer(tmp->pub.ies)))
 		spin_unlock_bh(&rdev->bss_lock);
-		return NULL;
-	}
+		goto free_ies;
 
 	found = rb_find_bss(rdev, tmp, BSS_CMP_REGULAR);
 
@@ -1766,7 +1768,6 @@ cfg80211_bss_update(struct cfg80211_registered_device *rdev,
 	} else {
 		struct cfg80211_internal_bss *new;
 		struct cfg80211_internal_bss *hidden;
-		struct cfg80211_bss_ies *ies;
 
 		/*
 		 * create a copy -- the "res" variable that is passed in
@@ -1775,15 +1776,8 @@ cfg80211_bss_update(struct cfg80211_registered_device *rdev,
 		 */
 		new = kzalloc(sizeof(*new) + rdev->wiphy.bss_priv_size,
 			      GFP_ATOMIC);
-		if (!new) {
-			ies = (void *)rcu_dereference(tmp->pub.beacon_ies);
-			if (ies)
-				kfree_rcu(ies, rcu_head);
-			ies = (void *)rcu_dereference(tmp->pub.proberesp_ies);
-			if (ies)
-				kfree_rcu(ies, rcu_head);
-			goto drop;
-		}
+		if (!new)
+			goto free_ies;
 		memcpy(new, tmp, sizeof(*new));
 		new->refcount = 1;
 		INIT_LIST_HEAD(&new->hidden_list);
@@ -1849,6 +1843,16 @@ cfg80211_bss_update(struct cfg80211_registered_device *rdev,
 	spin_unlock_bh(&rdev->bss_lock);
 
 	return found;
+
+free_ies:
+	ies = (void *)rcu_dereference(tmp->pub.beacon_ies);
+	if (ies)
+		kfree_rcu(ies, rcu_head);
+	ies = (void *)rcu_dereference(tmp->pub.proberesp_ies);
+	if (ies)
+		kfree_rcu(ies, rcu_head);
+
+	return NULL;
  drop:
 	spin_unlock_bh(&rdev->bss_lock);
 	return NULL;
@@ -2684,10 +2688,9 @@ void cfg80211_update_assoc_bss_entry(struct wireless_dev *wdev,
 
 	if (new) {
 		/* to save time, update IEs for transmitting bss only */
-		if (cfg80211_update_known_bss(rdev, cbss, new, false)) {
-			new->pub.proberesp_ies = NULL;
-			new->pub.beacon_ies = NULL;
-		}
+		cfg80211_update_known_bss(rdev, cbss, new, false);
+		new->pub.proberesp_ies = NULL;
+		new->pub.beacon_ies = NULL;
 
 		list_for_each_entry_safe(nontrans_bss, tmp,
 					 &new->pub.nontrans_list,
